@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>シンプルToDo</title>
+    <style>
+        /* アプリらしいデザインの設定 */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+        header {
+            background-color: #007aff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: #007aff;
+        }
+        button.add-btn {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button.add-btn:active {
+            background-color: #005bb5;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            word-break: break-all;
+        }
+        button.delete-btn {
+            background-color: #ff3b30;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+        button.delete-btn:active {
+            background-color: #d70015;
+        }
+        .empty-message {
+            text-align: center;
+            color: #888;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>シンプルToDo</header>
+
+    <div class="container">
+        <div class="input-area">
+            <input type="text" id="taskInput" placeholder="新しいタスクを入力..." autocomplete="off">
+            <button class="add-btn" id="addBtn">追加</button>
+        </div>
+
+        <ul id="taskList">
+            </ul>
+        <div id="emptyMessage" class="empty-message">タスクはありません</div>
+    </div>
+
+    <script>
+        const taskInput = document.getElementById('taskInput');
+        const addBtn = document.getElementById('addBtn');
+        const taskList = document.getElementById('taskList');
+        const emptyMessage = document.getElementById('emptyMessage');
+
+        // ローカルストレージからデータを読み込む（なければ空の配列）
+        let tasks = JSON.parse(localStorage.getItem('myTasks')) || [];
+
+        // 画面にタスクを表示する関数
+        function renderTasks() {
+            taskList.innerHTML = ''; // 一旦リストを空にする
+            
+            if (tasks.length === 0) {
+                emptyMessage.style.display = 'block';
+            } else {
+                emptyMessage.style.display = 'none';
+                
+                tasks.forEach((task, index) => {
+                    const li = document.createElement('li');
+                    
+                    const span = document.createElement('span');
+                    span.textContent = task;
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = '削除';
+                    deleteBtn.className = 'delete-btn';
+                    // 削除ボタンが押された時の処理
+                    deleteBtn.onclick = () => {
+                        tasks.splice(index, 1); // 配列から削除
+                        saveAndRender();
+                    };
+
+                    li.appendChild(span);
+                    li.appendChild(deleteBtn);
+                    taskList.appendChild(li);
+                });
+            }
+        }
+
+        // データを保存して画面を更新する関数
+        function saveAndRender() {
+            localStorage.setItem('myTasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        // 追加ボタンが押された時の処理
+        addBtn.addEventListener('click', () => {
+            const text = taskInput.value.trim();
+            if (text !== '') {
+                tasks.push(text); // 配列に追加
+                taskInput.value = ''; // 入力欄を空にする
+                saveAndRender();
+            }
+        });
+
+        // スマホのキーボードの「確定」やPCのEnterキーでも追加できるようにする
+        taskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addBtn.click();
+            }
+        });
+
+        // 最初に一回だけ画面を描画する
+        renderTasks();
+    </script>
+</body>
+</html>
